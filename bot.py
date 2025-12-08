@@ -2438,11 +2438,11 @@ def start_dashboard_thread():
     # run uvicorn in a thread to avoid blocking the bot
     def _run():
         uvicorn.run(
-            app,
-            host="0.0.0.0",
-            port=int(os.getenv("DASHBOARD_PORT", "8000")),
-            log_level="info",
-        )
+    app,
+    host="0.0.0.0",
+    port=int(os.getenv("PORT", 8000)),
+)
+
 
     t = threading.Thread(target=_run, daemon=True)
     t.start()
