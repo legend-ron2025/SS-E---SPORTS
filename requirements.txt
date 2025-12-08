@@ -1,0 +1,5 @@
+discord.py==2.6.3
+aiohttp
+python-dotenv
+fastapi
+uvicorn
