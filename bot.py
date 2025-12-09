@@ -3187,6 +3187,64 @@ async def _stopup_from_api(lobby_key: str):
 def ensure_dashboard_started():
     start_dashboard_thread()
 
+@app.get("/api/dashboard_status")
+async def dashboard_status():
+    # ---- TOP STATS ----
+    total_regs = len(REG_BY_ID)
+    confirmed_count = len([r for r in REG_BY_ID.values() if r.status == "confirmed"])
+    payment_pending_count = len([r for r in REG_BY_ID.values() if r.status == "payment_pending"])
+    blacklist_count = len(BLACKLIST)
+
+    # ---- LOBBIES ----
+    lobbies = {}
+    for key, cfg in LOBBIES.items():
+        confirmed = total_confirmed_slots(key)
+        reserved = reserved_slots_count(key)
+
+        percent = int((confirmed / 36) * 100) if confirmed else 0
+        percent = max(0, min(percent, 100))
+
+        lobbies[key] = {
+            "label": cfg.label,
+            "confirmed": confirmed,
+            "reserved": reserved,
+            "percent": percent,
+            "active": LOBBY_ACTIVE.get(key, False),
+        }
+
+    # ---- REGISTRATIONS ----
+    registrations = []
+    for r in REG_BY_ID.values():
+        registrations.append({
+            "reg_id": r.reg_id,
+            "team_name": r.team_name,
+            "lobby_label": LOBBIES[r.lobby_key].label,
+            "match_type": r.match_type,
+            "status": r.status,
+            "player_ids": r.player_ids,
+        })
+
+    # ---- BLACKLIST ----
+    blacklist = []
+    for v in BLACKLIST.values():
+        blacklist.append({
+            "leader_id": v["leader_id"],
+            "team": v.get("team"),
+            "reason": v["reason"],
+            "created_at": v["created_at"],
+        })
+
+    return {
+        "total_regs": total_regs,
+        "confirmed_count": confirmed_count,
+        "payment_pending_count": payment_pending_count,
+        "blacklist_count": blacklist_count,
+        "lobbies": lobbies,
+        "registrations": registrations,
+        "blacklist": blacklist,
+    }
+
+
 
 # -------------------------
 # run
